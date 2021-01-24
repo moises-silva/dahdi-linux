@@ -4,8 +4,7 @@
  * which dont have real dahdi card - usefule for testing.
  * 
  * Copyright (C) 2007, Druid Software Ltd.
- *
- * Used timer tick from dahdi_dummy
+ * Copyright (C) 2008, Moises Silva <moises.silva@gmail.com>
  *
  * All rights reserved.
  *
@@ -192,6 +191,21 @@ static int dahdi_loop_taprbs(struct dahdi_chan *chan, int bits)
     return 0;
 }
 
+static int dahdi_loop_maint(struct dahdi_span *span, int cmd)
+{
+	switch (cmd) {
+	case DAHDI_MAINT_ALARM_SIM:
+		if (span->alarms) {
+			span->alarms = 0;
+		} else {
+			span->alarms = DAHDI_ALARM_RED | DAHDI_ALARM_LOS;
+		}
+		dahdi_alarm_notify(span);
+		break;
+	}
+	return 0;
+}
+
 static const struct dahdi_span_ops loop_span_ops = {
 	.owner = THIS_MODULE,
 	.spanconfig = dahdi_loop_spanconfig,
@@ -202,6 +216,7 @@ static const struct dahdi_span_ops loop_span_ops = {
 	.close = dahdi_loop_close,
 	.ioctl = dahdi_loop_ioctl,
 	.rbsbits = dahdi_loop_rbs,
+	.maint = dahdi_loop_maint,
 };
 
 static const struct dahdi_span_ops tap_span_ops = {
